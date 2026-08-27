@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.2.2
+
+**Opening the panel now always checks for updates.** No timestamp, no
+interval, no conditions beyond the "Check on Open" switch itself.
+
+1.2.1 tried to be clever about this - remember when the last check happened,
+skip if it was recent, but make an exception for a version that had never
+checked for itself. It still produced the only outcome that matters: a tool
+that knew it was out of date and said nothing, twice, on a real install.
+Opening QC Bake from the shelf is a deliberate act and the moment an artist is
+most willing to hear it. One small JSON request on a worker thread is not
+worth outsmarting.
+
+The rate limit survives only for `showEvent` - docking, undocking, tab
+changes, layout restores - none of which is anybody asking for anything.
+
 ## 1.2.1
 
 **A freshly installed copy stayed silent about being out of date.** Settings

@@ -18,7 +18,7 @@
 #   commands one module per user-facing action, orchestrating core + scene.
 #   ui       the PySide6 dockable panel.
 
-VERSION = (1, 2, 1)
+VERSION = (1, 2, 2)
 VERSION_STRING = ".".join(str(part) for part in VERSION)
 
 # The Blender extension release this port carries feature parity with.

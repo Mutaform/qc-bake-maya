@@ -540,7 +540,8 @@ class QCBakePanel(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             "Maya has no add-on repository of its own, so QC Bake asks a\n"
             "manifest we publish whether a newer release exists.\n"
             "It only ever tells you - it never installs on its own.\n"
-            "Checked at most once every few hours, in the background.", self)
+            "\n"
+            "Checked every time the panel is opened, in the background.", self)
         box.toggled.connect(
             lambda value: setattr(self.settings, "update_auto_check", value))
         section.add_widget(box)
@@ -738,25 +739,42 @@ class QCBakePanel(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         scene.set_selection_order_tracked(value)
 
     # -- updates -------------------------------------------------------------
+    def check_on_open(self):
+        """Check every time the tool is opened. No clock, no conditions.
+
+        Opening QC Bake from the shelf is a deliberate act, and the moment an
+        artist is most willing to be told the tool is out of date. Anything
+        clever here - a timestamp, a rate limit - eventually produces the one
+        behaviour that matters: a tool that knows it is out of date and says
+        nothing. That happened, twice, and it is not worth the saved request.
+
+        The check itself costs one small JSON GET on a worker thread, so doing
+        it per open is cheap even for somebody who opens the panel all day.
+
+        Honoured only when "Check on Open" is on: an artist who turned it off
+        meant it.
+        """
+        if not self.settings.update_auto_check:
+            return
+        self.check_for_updates(announce=False)
+
     def maybe_check_for_updates(self):
-        """Check at most a few times a day, and only if asked to.
+        """Rate-limited check, for events that are not the artist opening it.
 
-        Rate limited because opening the panel is something an artist does
-        constantly, and a request per open is both rude to the server and
-        pointless - releases do not appear every ten minutes.
-
-        The limit is skipped when the running version is not the one the last
-        check was made from. These settings live in Maya optionVars, so they
-        belong to the artist and outlive any install: without this, a copy
-        installed minutes ago inherits the previous one's timestamp and stays
-        quiet about being out of date, which is the one moment it really ought
-        not to.
+        showEvent fires on docking, undocking, tab changes and layout
+        restores - none of which is a request for anything, so those are held
+        to the interval. Opening the tool goes through check_on_open() and is
+        never held back.
         """
         import time
 
         if not self.settings.update_auto_check:
             return
 
+        # A version that has never checked for itself always checks. These
+        # settings are Maya optionVars: they belong to the artist and outlive
+        # an install, so a copy installed minutes ago would otherwise inherit
+        # its predecessor's timestamp.
         if self.settings.update_last_version != VERSION_STRING:
             self.check_for_updates(announce=False)
             return
@@ -1163,6 +1181,7 @@ def show():
             cmds.workspaceControl(WORKSPACE_CONTROL, edit=True,
                                   restore=True, visible=True)
         panel.refresh()
+        panel.check_on_open()
         return panel
 
     # No live panel of our own, but there may still be a stray one that never
@@ -1179,6 +1198,7 @@ def show():
     # it be safely armed.
     _install_jobs()
     _PANEL.show(dockable=True, uiScript=UI_SCRIPT)
+    _PANEL.check_on_open()
     return _PANEL
 
 

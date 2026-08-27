@@ -233,6 +233,22 @@ def run():
         settings.update_auto_check = True
         settings.update_last_check = time.time()       # checked a moment ago
 
+        # Opening the tool always checks. No timestamp, no interval - the
+        # failure this replaces is a tool that knows it is out of date and
+        # says nothing, which happened twice.
+        settings.update_last_version = qc_bake_maya.VERSION_STRING
+        panel._update_check = None
+        panel.check_on_open()
+        check("opening always checks", panel._update_check is not None, True)
+        panel._update_check = None
+
+        settings.update_auto_check = False
+        panel.check_on_open()
+        check("except when switched off", panel._update_check, None)
+        settings.update_auto_check = True
+
+        # showEvent - docking, tab changes, layout restores - is not the
+        # artist asking for anything, so it stays rate limited.
         settings.update_last_version = qc_bake_maya.VERSION_STRING
         panel._update_check = None
         panel.maybe_check_for_updates()
