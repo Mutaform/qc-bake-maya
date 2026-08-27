@@ -10,7 +10,23 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $package = Join-Path $repoRoot "qc_bake_maya"
 $initFile = Join-Path $package "__init__.py"
-$distDir = Join-Path $repoRoot "dist"
+
+# Where the build puts its output.
+#
+# On CI it has to be the repository root, because the workflow publishes
+# `pages` from the checkout. Locally it goes to the Dev folder beside the
+# repository instead, so the working copy holds only the files that are
+# actually in the repository - build output living next to source is the kind
+# of clutter that makes it hard to see what a repository really contains.
+if ($env:GITHUB_ACTIONS -eq 'true') {
+    $outRoot = $repoRoot
+} else {
+    $outRoot = Join-Path (Split-Path -Parent $repoRoot) "Dev"
+    if (-not (Test-Path -LiteralPath $outRoot)) {
+        New-Item -ItemType Directory -Force -Path $outRoot | Out-Null
+    }
+}
+$distDir = Join-Path $outRoot "dist"
 
 if (-not (Test-Path -LiteralPath $initFile)) {
     throw "Missing qc_bake_maya/__init__.py in $repoRoot"
@@ -62,19 +78,29 @@ Remove-Item -LiteralPath $stagingRoot -Recurse -Force
 Write-Host "Built $zipPath"
 
 # ---------------------------------------------------------------------------
-# Kept releases
+# The current release, for a human to pick up
 # ---------------------------------------------------------------------------
-# dist/ is wiped on every build, so a copy goes to "Zip Addon" as well - the
-# same place the Blender edition keeps its releases. This folder is never
-# cleared: previous versions stay, which is what makes it possible to hand
-# someone the exact build they were running.
-$keepDir = Join-Path $repoRoot "Zip Addon"
-if (-not (Test-Path -LiteralPath $keepDir)) {
-    New-Item -ItemType Directory -Force -Path $keepDir | Out-Null
+# "Zip Addon" sits beside the repository, not inside it, and holds exactly one
+# archive: the current one. Older versions are deleted rather than kept -
+# GitHub and the repository history already hold every past release, and a
+# folder with five archives in it is a folder where somebody eventually hands
+# out the wrong one.
+#
+# Skipped on CI, where that folder does not exist and there is nobody to hand
+# anything to.
+if ($env:GITHUB_ACTIONS -ne 'true') {
+    $keepDir = Join-Path (Split-Path -Parent $repoRoot) "Zip Addon"
+    if (-not (Test-Path -LiteralPath $keepDir)) {
+        New-Item -ItemType Directory -Force -Path $keepDir | Out-Null
+    }
+
+    Get-ChildItem -LiteralPath $keepDir -File -Filter "qc_bake_maya-*.zip" |
+        Remove-Item -Force
+
+    $keptZip = Join-Path $keepDir "qc_bake_maya-$version.zip"
+    Copy-Item -LiteralPath $zipPath -Destination $keptZip -Force
+    Write-Host "Current $keptZip"
 }
-$keptZip = Join-Path $keepDir "qc_bake_maya-$version.zip"
-Copy-Item -LiteralPath $zipPath -Destination $keptZip -Force
-Write-Host "Kept   $keptZip"
 
 # ---------------------------------------------------------------------------
 # Publishing payload
@@ -83,7 +109,7 @@ Write-Host "Kept   $keptZip"
 # It is generated here rather than written by hand for one reason: a manifest
 # whose version disagrees with the archive beside it advertises an update that
 # installs nothing and is then offered forever. Both come from the same build.
-$pagesDir = Join-Path $repoRoot "pages"
+$pagesDir = Join-Path $outRoot "pages"
 if (Test-Path -LiteralPath $pagesDir) {
     Remove-Item -LiteralPath $pagesDir -Recurse -Force
 }

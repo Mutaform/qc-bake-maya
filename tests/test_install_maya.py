@@ -44,6 +44,20 @@ def _module_file():
                         "qc_bake_maya.mod")
 
 
+def _find_archives():
+    """Newest-last list of built archives, wherever the build put them.
+
+    The build writes into the repository on CI, because the workflow publishes
+    from the checkout, and into the Dev folder beside it when run by hand, so
+    that a working copy holds only the files the repository actually contains.
+    Both are looked at rather than assumed.
+    """
+    found = []
+    for base in (REPO, os.path.join(os.path.dirname(REPO), "Dev")):
+        found.extend(glob.glob(os.path.join(base, "dist", "*.zip")))
+    return sorted(found, key=os.path.getmtime)
+
+
 def _forget_everything():
     """Leave this Maya with no trace of QC Bake loaded or installed."""
     if "qc_bake_maya.ui.panel" in sys.modules:
@@ -76,7 +90,7 @@ def run():
     try:
         _forget_everything()
 
-        archives = sorted(glob.glob(os.path.join(REPO, "dist", "*.zip")))
+        archives = _find_archives()
         check("a release archive exists", bool(archives), True)
         if not archives:
             return _report(notes)

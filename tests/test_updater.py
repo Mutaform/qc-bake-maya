@@ -214,9 +214,15 @@ finally:
 # down, beside the installer and the docs, and a stage() that assumed a flat
 # layout would pass every test above and then fail on the first real update.
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-dist = os.path.join(ROOT, "dist")
-built = ([os.path.join(dist, name) for name in sorted(os.listdir(dist))
-          if name.endswith(".zip")] if os.path.isdir(dist) else [])
+# The build writes into the repository on CI and into the Dev folder beside it
+# when run by hand, so both are looked at rather than assumed.
+built = []
+for _base in (ROOT, os.path.join(os.path.dirname(ROOT), "Dev")):
+    _dist = os.path.join(_base, "dist")
+    if os.path.isdir(_dist):
+        built.extend(os.path.join(_dist, n) for n in sorted(os.listdir(_dist))
+                     if n.endswith(".zip"))
+built.sort(key=os.path.getmtime)
 
 if built:
     archive = built[-1]
@@ -247,7 +253,7 @@ if built:
 
             # The version in the archive must match the manifest the same
             # build wrote, or the update installs and re-offers itself.
-            manifest_path = os.path.join(ROOT, "pages", "version.json")
+            manifest_path = os.path.join(os.path.dirname(archive), "..", "pages", "version.json")
             if os.path.isfile(manifest_path):
                 raw = open(manifest_path, "rb").read()
                 # The published file must be plain UTF-8. A byte-order mark

@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.4
+
+Working-folder layout. Nothing in the tool itself changed.
+
+The project holds three folders and no others: `Git/` is the repository and
+contains only files the repository actually tracks, `Zip Addon/` holds exactly
+one archive - the current release - and `Dev/` takes everything else.
+
+`tools/build_release.ps1` writes its output into `Dev/` when run by hand, and
+into the repository when run on CI, where the workflow has to publish `pages/`
+from the checkout. The two tests that look for a built archive check both
+places rather than assuming one.
+
 ## 1.1.3
 
 README rewritten in Russian and cut roughly in half. What an artist needs -
