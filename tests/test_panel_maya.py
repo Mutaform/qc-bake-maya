@@ -217,6 +217,44 @@ def run():
     check("visibility hint hidden once names exist",
           panel.visibility_hint.isVisibleTo(panel), False)
 
+    # --- the update throttle must not silence a fresh install ---------------
+    # Settings are optionVars: they belong to the artist and outlive an
+    # install. A copy installed minutes ago inherited the previous one's
+    # "checked recently" timestamp and stayed quiet about being out of date.
+    # Reported from a real install, so it is pinned here.
+    import time
+
+    from qc_bake_maya import prefs
+
+    settings = prefs.load()
+    saved = (settings.update_auto_check, settings.update_last_check,
+             settings.update_last_version)
+    try:
+        settings.update_auto_check = True
+        settings.update_last_check = time.time()       # checked a moment ago
+
+        settings.update_last_version = qc_bake_maya.VERSION_STRING
+        panel._update_check = None
+        panel.maybe_check_for_updates()
+        check("no check when this version checked recently",
+              panel._update_check, None)
+
+        settings.update_last_version = "0.0.1"         # a different build
+        panel._update_check = None
+        panel.maybe_check_for_updates()
+        check("but a freshly installed version checks anyway",
+              panel._update_check is not None, True)
+        panel._update_check = None
+
+        settings.update_auto_check = False
+        settings.update_last_version = "0.0.1"
+        panel.maybe_check_for_updates()
+        check("and never when the artist switched it off",
+              panel._update_check, None)
+    finally:
+        (settings.update_auto_check, settings.update_last_check,
+         settings.update_last_version) = saved
+
     cmds.file(new=True, force=True)
     qc_bake_maya.show()
     return _report()

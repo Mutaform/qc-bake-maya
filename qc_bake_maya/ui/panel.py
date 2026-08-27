@@ -201,6 +201,13 @@ class QCBakePanel(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.update_label.setStyleSheet("QLabel { color: #a9cbe8; }")
 
         self.btn_update = QtWidgets.QPushButton("Install", self.update_banner)
+        self.btn_update.setMinimumWidth(96)
+        self.btn_update.setMinimumHeight(26)
+        self.btn_update.setStyleSheet(
+            "QPushButton { background-color: #3d6a8c; color: #f0f6fb;"
+            " border: 1px solid #5a89ad; border-radius: 3px; font-weight: bold; }"
+            "QPushButton:hover { background-color: #4a7da3; }"
+            "QPushButton:disabled { background-color: #3a4650; color: #7f8b95; }")
         self.btn_update.setToolTip(
             "Download the new version, replace this one and reload.\n"
             "The current version is kept until the new one has loaded.")
@@ -208,16 +215,27 @@ class QCBakePanel(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         self.btn_skip_update = QtWidgets.QPushButton("Skip",
                                                      self.update_banner)
+        self.btn_skip_update.setMinimumWidth(72)
+        self.btn_skip_update.setMinimumHeight(26)
+        self.btn_skip_update.setStyleSheet(
+            "QPushButton { background-color: transparent; color: #9fb4c6;"
+            " border: 1px solid #4a5f70; border-radius: 3px; }"
+            "QPushButton:hover { color: #cfe0ee; border-color: #6d8397; }")
         self.btn_skip_update.setToolTip(
             "Stop offering this particular version. A later one will still "
             "be announced.")
         self.btn_skip_update.clicked.connect(self._on_skip_update)
 
+        # Opposite corners, with the whole width between them. Side by side,
+        # the two are one slip apart - and they do very different things: one
+        # replaces the running tool, the other silently hides the offer. The
+        # weight differs too, so the one that acts looks like the one that
+        # acts.
         buttons = QtWidgets.QHBoxLayout()
-        buttons.setContentsMargins(0, 0, 0, 0)
+        buttons.setContentsMargins(0, 2, 0, 0)
+        buttons.addWidget(self.btn_skip_update, 0, QtCore.Qt.AlignLeft)
         buttons.addStretch(1)
-        buttons.addWidget(self.btn_skip_update)
-        buttons.addWidget(self.btn_update)
+        buttons.addWidget(self.btn_update, 0, QtCore.Qt.AlignRight)
 
         layout = QtWidgets.QVBoxLayout(self.update_banner)
         layout.setContentsMargins(8, 6, 8, 6)
@@ -726,11 +744,23 @@ class QCBakePanel(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         Rate limited because opening the panel is something an artist does
         constantly, and a request per open is both rude to the server and
         pointless - releases do not appear every ten minutes.
+
+        The limit is skipped when the running version is not the one the last
+        check was made from. These settings live in Maya optionVars, so they
+        belong to the artist and outlive any install: without this, a copy
+        installed minutes ago inherits the previous one's timestamp and stays
+        quiet about being out of date, which is the one moment it really ought
+        not to.
         """
         import time
 
         if not self.settings.update_auto_check:
             return
+
+        if self.settings.update_last_version != VERSION_STRING:
+            self.check_for_updates(announce=False)
+            return
+
         age = time.time() - (self.settings.update_last_check or 0.0)
         if age < prefs.UPDATE_CHECK_INTERVAL:
             return
@@ -770,6 +800,9 @@ class QCBakePanel(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             return
 
         self.settings.update_last_check = time.time()
+        # Recorded together, so the throttle can tell "checked recently" from
+        # "checked recently, by a different version of the tool".
+        self.settings.update_last_version = VERSION_STRING
         remote = manifest.get("version", "")
 
         if not updater.is_newer(remote, VERSION_STRING):
@@ -787,6 +820,11 @@ class QCBakePanel(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             "QC Bake %s is available (you have %s).%s"
             % (remote, VERSION_STRING, ("\n" + notes) if notes else ""))
         self.update_banner.setVisible(True)
+        # The banner is now carrying the news, so the status strip should stop
+        # saying "Checking for updates..." - left there it reads as a check
+        # that never finished.
+        if getattr(self, "_announce_update", False):
+            self.status.clear_message()
 
     def _on_skip_update(self):
         if self._pending_update:

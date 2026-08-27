@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.2.1
+
+**A freshly installed copy stayed silent about being out of date.** Settings
+live in Maya optionVars, which belong to the artist and outlive any install -
+so a copy installed minutes ago inherited the previous one's "checked
+recently" timestamp and skipped its own check, for up to six hours. Reported
+from a real install: 1.1.4 said nothing while 1.2.0 was published. The
+timestamp is now recorded together with the version it was taken from, and a
+version that has not checked for itself checks regardless of the clock.
+
+**Skip and Install sat side by side in the update banner**, one slip apart,
+and they do very different things - one replaces the running tool, the other
+silently hides the offer. They are now in opposite corners with the width of
+the panel between them, and Install carries the weight of the action it
+performs while Skip recedes.
+
+The status strip no longer keeps saying "Checking for updates..." after the
+banner has appeared with the answer.
+
 ## 1.2.0
 
 New shelf icon: the QC Bake badge - flame over a copper name band - replacing

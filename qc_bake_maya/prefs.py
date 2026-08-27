@@ -84,6 +84,12 @@ FIELDS = [
     # Epoch seconds of the last successful check, so opening the panel twenty
     # times in an afternoon does not mean twenty requests.
     _Field("update_last_check", 0.0, float),
+    # Which version was running at that check. These settings are Maya
+    # optionVars: they belong to the artist and outlive any install, so a
+    # freshly installed copy would otherwise inherit the previous one's
+    # timestamp and stay silent about being out of date - exactly the moment
+    # it most needs to speak up.
+    _Field("update_last_version", "", str),
     # A version the artist chose to pass over; they are not asked about it
     # again, but a later one still surfaces.
     _Field("update_skip_version", "", str),
