@@ -53,9 +53,17 @@ jobs:
 
       - name: Build release and manifest
         shell: pwsh
-        env:
-          QCBAKE_PAGES_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
-        run: tools/build_release.ps1
+        run: |
+          # Lower-cased deliberately. github.repository_owner keeps the
+          # account's own capitalisation, and while a Pages host is
+          # case-insensitive, the URL it produces would not match the one the
+          # installed tool has as its default - a difference that is invisible
+          # until something compares the two as strings.
+          $owner = "${{ github.repository_owner }}".ToLowerInvariant()
+          $name  = "${{ github.event.repository.name }}".ToLowerInvariant()
+          $env:QCBAKE_PAGES_URL = "https://$owner.github.io/$name"
+          Write-Host "publishing as $env:QCBAKE_PAGES_URL"
+          tools/build_release.ps1
 
       - name: Show what will be published
         shell: pwsh
