@@ -1,0 +1,13 @@
+# Build output and the local archive warehouse.
+# "Zip Addon" is the studio's store of built releases: it lives on disk beside
+# the repository, never inside it. dist/ is wiped by every build, and pages/ is
+# what the workflow generates and publishes to gh-pages.
+Zip Addon/
+dist/
+pages/
+
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+Thumbs.db

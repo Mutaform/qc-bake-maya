@@ -1,0 +1,7 @@
+GPL-2.0-or-later
+
+This repository is declared as GPL-2.0-or-later in
+qc_bake/blender_manifest.toml and the source headers.
+
+Before public release, replace this file with the full GPL-2.0-or-later license
+text if the repository should carry the complete license body.
