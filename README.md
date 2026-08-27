@@ -10,13 +10,18 @@
 Порт [расширения QC Bake для Blender](https://github.com/Mutaform/qc-bake) с тем же
 набором возможностей.
 
+### **[⬇ Скачать последнюю версию](https://mutaform.github.io/qc-bake-maya/qc_bake_maya.zip)**
+
+Ссылка постоянная и всегда отдаёт свежий релиз — её же читает встроенная проверка
+обновлений.
+
 ## Совместимость
 
 Maya 2025 (Python 3.11, PySide6)
 
 ## Установка
 
-1. Скачайте `qc_bake_maya-<версия>.zip`
+1. Скачайте [`qc_bake_maya.zip`](https://mutaform.github.io/qc-bake-maya/qc_bake_maya.zip)
 2. Распакуйте **туда, где папка останется** — в папку инструментов, на сетевую шару,
    куда угодно постоянное
 3. Перетащите `install/install.py` из распакованной папки во вьюпорт Maya
