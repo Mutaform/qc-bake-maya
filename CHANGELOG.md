@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.3
+
+README rewritten in Russian and cut roughly in half. What an artist needs -
+what the tool does, how to install it, what each button does, how updates
+work - stays; the internal detail about release layout, icon sources and the
+repository tree is gone, since it described the workshop rather than the tool.
+
+Version bumped even though nothing functional changed, so that a version
+number keeps identifying one exact archive: the README ships inside the zip.
+
 ## 1.1.2
 
 Licensing and housekeeping. No functional change to the tool.
