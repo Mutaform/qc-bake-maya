@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.2.4
+
+Shelf icon from `icons_src/qc_bake.svg` - a real vector this time, so every
+size is drawn from the source rather than resampled from a bitmap.
+
+**Why the icon is still shipped as PNG, given Maya accepts SVG.** It does
+accept it: a shelf button loads an `.svg` from disk and draws it. But it draws
+it through Qt, which implements SVG Tiny - no `<mask>`. Qt ignores the element
+and then paints the mask's own contents as artwork, which on this file floods
+a green path across the QC BAKE text and leaves a white rectangle behind it.
+Measured on a real shelf button, not assumed: 29% green, 11% white.
+
+So the PNGs are rendered by a browser, which implements the whole spec, and
+Edge ships with Windows. One render at 512 then resampled down - asking for
+each size directly was a lottery, with some coming back clipped to a band.
+
+If the mask is flattened in the source artwork, Maya can use the SVG directly
+and this build step disappears.
+
+Also corrected the README, which still described update checks as rate limited
+to once every six hours; 1.2.2 made them happen on every open.
+
 ## 1.2.3
 
 Shelf icon swapped again: the copper QC BAKE badge, replacing the flame one
