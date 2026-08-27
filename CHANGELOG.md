@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.2.0
+
+New shelf icon: the QC Bake badge - flame over a copper name band - replacing
+the plain flame.
+
+The source art was exported flat, RGB with no alpha and its rounded corners
+filled with the design tool's canvas grey, which on Maya's lighter shelf would
+have shown as four dark wedges around the badge. The alpha is therefore rebuilt
+at build time: `icons_src/make_icon.py` measures the badge's corner radius and
+draws a clean anti-aliased rounded rectangle, rather than making one colour
+transparent - which would also have punched holes anywhere inside the badge
+sharing that grey.
+
+The previous flame generator is gone. It wrote into the same files, so leaving
+it in place meant anyone who ran it would silently put the old icon back.
+
 ## 1.1.4
 
 Working-folder layout. Nothing in the tool itself changed.

@@ -1,73 +1,82 @@
-"""Build the QC Bake shelf icon.
+"""Build the QC Bake shelf icon from qc_bake_source.png.
 
-One icon: the flame, no logo. Run it inside Maya, which is where Qt already
-is:
+    python icons_src/make_icon.py
 
-    exec(open(r"...\\icons_src\\make_icon.py").read(), {})
+Writes qc_bake_32/64/128.png into qc_bake_maya/resources/ - inside the
+package, deliberately, so the icon travels both into the release archive and
+through an update, which swaps the package folder and nothing else.
 
-The PNGs are written into qc_bake_maya/resources/ - inside the package,
-deliberately. An asset kept beside the package instead of in it does not
-travel: it is missed by the release build, and worse, never replaced by an
-update, because an update swaps the package folder and nothing else. This
-source folder stays outside the package, since only whoever redraws the icon
-needs it.
+The source art is a rounded badge exported flat: RGB with no alpha, and the
+corners filled with the design tool's own canvas grey. Dropped straight onto
+Maya's lighter shelf, that grey reads as four dark wedges around the badge.
 
-32 is the size a Maya shelf button actually draws; the larger two are there
-for high-DPI displays.
+So the alpha is rebuilt here rather than taken from the file. Not by making
+the background colour transparent - that would also punch holes anywhere
+inside the badge that happens to share it - but by measuring the badge's
+corner radius and drawing a clean anti-aliased rounded rectangle. The edge
+comes out better than the flattened original's, too.
+
+Needs Pillow. Nothing else, and not Maya.
 """
 
 import os
-import sys
+
+from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-ICONS = os.path.join(REPO, "qc_bake_maya", "resources")
-if HERE not in sys.path:
-    sys.path.insert(0, HERE)
-
-import flame  # noqa: E402
+SOURCE = os.path.join(HERE, "qc_bake_source.png")
+DEST = os.path.join(REPO, "qc_bake_maya", "resources")
 
 NAME = "qc_bake"
-SIZES = (32, 64, 128)
+# 32 is the size a Maya shelf button actually draws. The other two are there
+# for high-DPI displays.
+SIZES = (128, 64, 32)
+SUPERSAMPLE = 8
 
 
-def build_svg():
-    """The flame on its own, in a 64x64 box with a little breathing room."""
-    body = flame.flame(scale=0.64, dx=0, dy=0)
-    return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" '
-            'width="64" height="64">%s</svg>' % body)
+def measure_radius(img, background, tolerance=24):
+    """Corner radius of the badge, read off its top row.
+
+    A rounded rectangle's top row starts at x = r, so the run of background
+    pixels before the shape begins is the radius.
+    """
+    width = img.size[0]
+    for x in range(width):
+        pixel = img.getpixel((x, 0))
+        if sum(abs(a - b) for a, b in zip(pixel, background)) > tolerance:
+            return x
+    return 0
 
 
-def write_svg():
-    path = os.path.join(HERE, NAME + ".svg")
-    with open(path, "w", encoding="utf-8") as handle:
-        handle.write(build_svg())
-    return path
+def build():
+    source = Image.open(SOURCE).convert("RGB")
+    width, height = source.size
+    background = source.getpixel((0, 0))
+    radius = measure_radius(source, background)
 
+    # Drawn large and shrunk down, so the curve is smooth rather than
+    # stair-stepped.
+    mask = Image.new("L", (width * SUPERSAMPLE, height * SUPERSAMPLE), 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        (0, 0, width * SUPERSAMPLE - 1, height * SUPERSAMPLE - 1),
+        radius=radius * SUPERSAMPLE, fill=255)
+    mask = mask.resize((width, height), Image.LANCZOS)
 
-def render(svg_path=None):
-    """Render the PNGs. Needs Qt, so this is the part that wants Maya."""
-    from PySide6 import QtCore, QtGui, QtSvg
+    badge = source.copy()
+    badge.putalpha(mask)
 
-    svg_path = svg_path or write_svg()
+    os.makedirs(DEST, exist_ok=True)
     written = []
     for size in SIZES:
-        image = QtGui.QImage(size, size, QtGui.QImage.Format_ARGB32)
-        image.fill(QtCore.Qt.transparent)
-        painter = QtGui.QPainter(image)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
-        QtSvg.QSvgRenderer(svg_path).render(painter)
-        painter.end()
-        target = os.path.join(ICONS, "%s_%d.png" % (NAME, size))
-        image.save(target)
-        written.append(target)
-    return written
+        path = os.path.join(DEST, "%s_%d.png" % (NAME, size))
+        badge.resize((size, size), Image.LANCZOS).save(path)
+        written.append(path)
+    return radius, background, written
 
 
 if __name__ == "__main__":
-    write_svg()
-    try:
-        for path in render():
-            print("wrote", path)
-    except ImportError:
-        print("wrote the SVG; run this inside Maya to render the PNGs")
+    radius, background, written = build()
+    print("source corner radius %d px, background %s" % (radius, background))
+    for path in written:
+        print("wrote", path)
