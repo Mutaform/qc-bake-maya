@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.3
+
+Shelf icon swapped again: the copper QC BAKE badge, replacing the flame one
+introduced in 1.2.0. Same build path - `icons_src/qc_bake_source.png` through
+`icons_src/make_icon.py`, which measures the corner radius (39 px this time)
+and rebuilds the alpha, since the artwork is exported flat with the design
+tool's canvas grey in its corners.
+
+At 32 px "QC" reads and "BAKE" resolves to a dark bar. Being light on a dark
+shelf, it stands out more than the dark badge did.
+
+A patch rather than a minor bump: this revises the icon 1.2.0 introduced
+rather than adding anything.
+
 ## 1.2.2
 
 **Opening the panel now always checks for updates.** No timestamp, no
