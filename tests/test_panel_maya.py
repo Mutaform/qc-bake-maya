@@ -9,7 +9,7 @@
 #     import importlib.util
 #     spec = importlib.util.spec_from_file_location(
 #         "qcbake_panel_tests",
-#         r"D:\Mutaform\Mutaform Addons\qc_bake-maya\tests\test_panel_maya.py")
+#         r"C:\path\to\qc-bake-maya\tests\test_panel_maya.py")
 #     m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 #     print(m.run())
 #

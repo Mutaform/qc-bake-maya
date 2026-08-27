@@ -12,7 +12,7 @@
 #     import importlib.util
 #     spec = importlib.util.spec_from_file_location(
 #         "qcbake_install_test",
-#         r"...\tests\test_install_maya.py")
+#         r"C:\path\to\qc-bake-maya\tests\test_install_maya.py")
 #     m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 #     print(m.run())
 #

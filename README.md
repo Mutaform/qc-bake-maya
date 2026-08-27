@@ -40,7 +40,7 @@ From the script editor instead:
 
 ```python
 import sys
-sys.path.insert(0, r"D:\Mutaform\Mutaform Addons\qc_bake-maya\install")
+sys.path.insert(0, r"C:\path\to\qc-bake-maya\install")
 import install
 install.install()
 ```
@@ -189,11 +189,11 @@ scene - they call `file -new` repeatedly and save nothing:
 
 ```python
 import sys
-sys.path.insert(0, r"D:\Mutaform\Mutaform Addons\qc_bake-maya")
+sys.path.insert(0, r"C:\path\to\qc-bake-maya")
 import importlib.util
 spec = importlib.util.spec_from_file_location(
     "qcbake_tests",
-    r"D:\Mutaform\Mutaform Addons\qc_bake-maya\tests\test_scene_maya.py")
+    r"C:\path\to\qc-bake-maya\tests\test_scene_maya.py")
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 module.run()
@@ -215,4 +215,6 @@ Writes `dist/qc_bake_maya-<version>.zip`.
 
 ## License
 
-GPL-2.0-or-later, matching the Blender extension this is ported from.
+Copyright (c) 2026 Mutaform Studio. All rights reserved. The source is
+published to be read and audited; it is not licensed for reuse or
+redistribution. See LICENSE.

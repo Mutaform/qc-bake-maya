@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.1.2
+
+Licensing and housekeeping. No functional change to the tool.
+
+- **The LICENSE file was a placeholder.** It carried GPL-2.0-or-later, pointed
+  at `qc_bake/blender_manifest.toml` - a file that belongs to the Blender
+  repository and does not exist here - and contained an instruction to replace
+  itself before public release, which had not happened. QC Bake for Maya is now
+  explicitly Copyright (c) 2026 Mutaform Studio, all rights reserved. The
+  Blender edition is GPL because Blender's Python API requires that of add-ons;
+  Maya imposes no equivalent condition, and the same author licenses this
+  edition on its own terms.
+- Documentation examples no longer hard-code one machine's folder layout. They
+  read `C:\path\to\qc-bake-maya`, which is obviously a placeholder rather than
+  a path that happens to exist on exactly one computer.
+- Removed an empty `tests/__init__.py`. Nothing imported `tests` as a package.
+
 ## 1.1.1
 
 **The release archive did not contain the shelf icon.** It sat beside the

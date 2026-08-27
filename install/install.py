@@ -7,7 +7,7 @@ Mutaform shelf, and opens the panel.
 It can also be run from the script editor:
 
     import sys
-    sys.path.insert(0, r"D:\\Mutaform\\Mutaform Addons\\qc_bake-maya\\install")
+    sys.path.insert(0, r"C:\\path\\to\\qc-bake-maya\\install")
     import install
     install.install()
 
