@@ -1,0 +1,11 @@
+{
+  "id": "qc_bake_maya",
+  "name": "QC Bake",
+  "version": "1.2.4",
+  "download": "https://mutaform.github.io/qc-bake-maya/qc_bake_maya.zip",
+  "sha256": "36105110421f0574cb5c828fb828f32a1eee132e0de49700cb02076138e9671d",
+  "notes": "Shelf icon from icons_src/qc_bake.svg - a real vector this time, so every size is drawn from the source rather than resampled from a bitmap.",
+  "maya": [
+    "2025"
+  ]
+}
